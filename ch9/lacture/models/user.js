@@ -13,7 +13,7 @@ module.exports = class User extends Sequelize.Model {
         allowNull: false,
       },
       password: {
-        tyoe: Sequelize.STRING(100),
+        type: Sequelize.STRING(100),
         allowNull: true,
       },
       porvider: {
@@ -35,5 +35,19 @@ module.exports = class User extends Sequelize.Model {
       charset: 'utf8',
       collate: 'utf8_general_ci'
     });
+  }
+
+  static associate(db) {
+    db.User.hasMany(db.Post);
+    db.User.belongsToMany(db.User, {
+      foreignKey: 'floowinId',
+      as: 'Followers',
+      through: 'Follow'
+    });
+    db.User.belongsToMany(db.User, {
+      foreignKey: 'followerId',
+      as: 'Floowings',
+      through: 'Follow'
+    })
   }
 }
