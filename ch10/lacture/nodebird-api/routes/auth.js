@@ -1,18 +1,19 @@
 const express = require('express');
-const bcrypt = require('bcrypt')
-const User = require('../models/user');
 const passport = require('passport');
-const { isLoggedIn, isNotLoggedIn } = require('./middlewares')
+const bcrypt = require('bcrypt');
+const { isLoggedIn, isNotLoggedIn } = require('./middlewares');
+const { User } = require('../models');
+
 const router = express.Router();
 
-router.post('/join', async (req, res, next) => {
+router.post('/join', isNotLoggedIn, async (req, res, next) => {
   const { email, nick, password } = req.body;
   try {
-    const exUser = await User.findOne({ where: { email }});
+    const exUser = await User.find({ where: { email } });
     if (exUser) {
       return res.redirect('/join?error=exist');
-    };
-    const hash = await bcrypt.hash(password, 12); 
+    }
+    const hash = await bcrypt.hash(password, 12);
     await User.create({
       email,
       nick,
@@ -23,17 +24,17 @@ router.post('/join', async (req, res, next) => {
     console.error(error);
     return next(error);
   }
-})
+});
 
 router.post('/login', isNotLoggedIn, (req, res, next) => {
   passport.authenticate('local', (authError, user, info) => {
     if (authError) {
       console.error(authError);
-      return next(authError)
-    };
+      return next(authError);
+    }
     if (!user) {
-      return res.redirect(`/!loginError=${info.message}`);
-    };
+      return res.redirect(`/?loginError=${info.message}`);
+    }
     return req.login(user, (loginError) => {
       if (loginError) {
         console.error(loginError);
@@ -41,14 +42,14 @@ router.post('/login', isNotLoggedIn, (req, res, next) => {
       }
       return res.redirect('/');
     });
-  })(req, res, next);
-})
+  })(req, res, next); // 미들웨어 내의 미들웨어에는 (req, res, next)를 붙입니다.
+});
 
 router.get('/logout', isLoggedIn, (req, res) => {
   req.logout();
   req.session.destroy();
-  res.redirect('/')
-})
+  res.redirect('/');
+});
 
 router.get('/kakao', passport.authenticate('kakao'));
 
@@ -56,6 +57,6 @@ router.get('/kakao/callback', passport.authenticate('kakao', {
   failureRedirect: '/',
 }), (req, res) => {
   res.redirect('/');
-})
+});
 
 module.exports = router;
