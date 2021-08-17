@@ -11,6 +11,7 @@
   "author": "DaeGyu",
   "license": "MIT",
   "devDependencies": {
+    "artillery": "^1.7.6",
     "jest": "^27.0.6",
     "nodemon": "^2.0.12",
     "supertest": "^6.1.4"
